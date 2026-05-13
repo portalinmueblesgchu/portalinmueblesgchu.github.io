@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gchu Propiedades — Gualeguaychú</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=Fraunces:ital,wght@0,300;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --sky: #C8E6F5;
+    --sky-mid: #A8D4ED;
+    --sky-deep: #6BAED4;
+    --sky-text: #2A6A8F;
+    --sky-soft: #EBF6FC;
+    --sky-border: #B8DDEF;
+    --ink: #1A2733;
+    --ink-mid: #4A6070;
+    --ink-light: #8AA0AF;
+    --white: #FAFCFE;
+    --surface: #F2F8FC;
+    --card: #FFFFFF;
+    --border: #DDE8EF;
+    --green: #2D9E6B;
+    --green-bg: #E8F6EF;
+    --green-text: #1A6B45;
+    --amber: #E8962A;
+    --amber-bg: #FEF3E2;
+    --amber-text: #8A5210;
+    --violet-bg: #EEF0FB;
+    --violet-text: #4A52A8;
+    --radius: 14px;
+    --radius-sm: 8px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--surface);
+    color: var(--ink);
+    min-height: 100vh;
+  }
+
+  /* ── NAV ── */
+  nav {
+    background: var(--white);
+    border-bottom: 1px solid var(--sky-border);
+    padding: 0 32px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+  }
+  .logo-mark {
+    width: 32px; height: 32px;
+    background: var(--sky);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    border: 1px solid var(--sky-border);
+  }
+  .logo-mark svg { display: block; }
+  .logo-text {
+    font-family: 'Fraunces', serif;
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--ink);
+    letter-spacing: -0.3px;
+  }
+  .logo-text span { color: var(--sky-deep); }
+
+  .nav-links {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+  }
+  .nav-link {
+    font-size: 13px;
+    color: var(--ink-mid);
+    text-decoration: none;
+    padding: 6px 12px;
+    border-radius: var(--radius-sm);
+    transition: all 0.15s;
+    cursor: pointer;
+  }
+  .nav-link:hover { background: var(--sky-soft); color: var(--sky-text); }
+  .nav-link.active { color: var(--sky-text); font-weight: 500; background: var(--sky-soft); }
+
+  .nav-right { display: flex; align-items: center; gap: 10px; }
+  .btn-secondary {
+    font-size: 13px; font-family: 'DM Sans', sans-serif;
+    color: var(--sky-text);
+    background: transparent;
+    border: 1px solid var(--sky-border);
+    border-radius: var(--radius-sm);
+    padding: 7px 14px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-secondary:hover { background: var(--sky-soft); }
+  .btn-primary {
+    font-size: 13px; font-family: 'DM Sans', sans-serif; font-weight: 500;
+    color: var(--white);
+    background: var(--sky-deep);
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 8px 16px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-primary:hover { background: var(--sky-text); }
+
+  /* ── HERO ── */
+  .hero {
+    background: var(--white);
+    border-bottom: 1px solid var(--sky-border);
+    padding: 48px 32px 36px;
+  }
+  .hero-inner { max-width: 720px; }
+  .hero-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--sky-soft);
+    border: 1px solid var(--sky-border);
+    border-radius: 99px;
+    padding: 4px 12px;
+    font-size: 12px;
+    color: var(--sky-text);
+    font-weight: 500;
+    margin-bottom: 16px;
+  }
+  .hero-eyebrow-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--sky-deep); }
+  .hero-title {
+    font-family: 'Fraunces', serif;
+    font-size: 36px;
+    font-weight: 300;
+    color: var(--ink);
+    line-height: 1.2;
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
+  }
+  .hero-title em { font-style: italic; color: var(--sky-deep); }
+  .hero-sub {
+    font-size: 15px;
+    color: var(--ink-mid);
+    margin-bottom: 28px;
+    line-height: 1.6;
+  }
+
+  .search-box {
+    background: var(--surface);
+    border: 1.5px solid var(--sky-border);
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+    transition: border-color 0.15s;
+  }
+  .search-box:focus-within { border-color: var(--sky-deep); }
+  .search-input-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    min-width: 200px;
+  }
+  .search-input-wrap svg { color: var(--ink-light); flex-shrink: 0; }
+  .search-box input {
+    border: none;
+    background: transparent;
+    font-size: 14px;
+    color: var(--ink);
+    font-family: 'DM Sans', sans-serif;
+    outline: none;
+    width: 100%;
+  }
+  .search-box input::placeholder { color: var(--ink-light); }
+  .search-sep { width: 1px; height: 24px; background: var(--border); }
+  .search-select {
+    border: none; background: transparent;
+    font-size: 13px; color: var(--ink-mid);
+    font-family: 'DM Sans', sans-serif;
+    outline: none; cursor: pointer;
+    padding: 0 4px;
+  }
+  .search-btn {
+    background: var(--sky-deep);
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 9px 20px;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    transition: background 0.15s;
+    white-space: nowrap;
+  }
+  .search-btn:hover { background: var(--sky-text); }
+
+  .hero-stats {
+    display: flex;
+    gap: 24px;
+    margin-top: 18px;
+    flex-wrap: wrap;
+  }
+  .stat {
+    font-size: 13px;
+    color: var(--ink-light);
+  }
+  .stat strong { color: var(--ink-mid); font-weight: 500; }
+
+  /* ── FILTERS ── */
+  .filters-bar {
+    background: var(--white);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 32px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+    overflow-x: auto;
+  }
+  .filter-group { display: flex; gap: 6px; align-items: center; }
+  .filter-label { font-size: 12px; color: var(--ink-light); white-space: nowrap; }
+  .chip {
+    font-size: 12px;
+    padding: 5px 13px;
+    border-radius: 99px;
+    border: 1px solid var(--border);
+    color: var(--ink-mid);
+    cursor: pointer;
+    background: var(--white);
+    transition: all 0.15s;
+    white-space: nowrap;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .chip:hover { border-color: var(--sky-border); color: var(--sky-text); }
+  .chip.active { background: var(--sky); border-color: var(--sky-mid); color: var(--sky-text); font-weight: 500; }
+  .filter-divider { width: 1px; height: 20px; background: var(--border); margin: 0 4px; }
+
+  /* ── MAIN ── */
+  .main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 28px 32px;
+  }
+  .results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  .results-title { font-size: 14px; font-weight: 500; color: var(--ink); }
+  .results-count { font-size: 13px; color: var(--ink-light); }
+  .sort-select {
+    font-size: 13px; color: var(--ink-mid);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 6px 10px;
+    background: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    outline: none; cursor: pointer;
+  }
+
+  /* ── PROPERTY GRID ── */
+  .prop-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 14px;
+  }
+
+  .prop-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    transition: border-color 0.15s, transform 0.15s;
+    cursor: pointer;
+  }
+  .prop-card:hover {
+    border-color: var(--sky-mid);
+    transform: translateY(-2px);
+  }
+
+  /* card top — agency */
+  .card-agency {
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid var(--border);
+    background: var(--sky-soft);
+  }
+  .card-agency.particular {
+    background: var(--surface);
+  }
+  .agency-avatar {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px; font-weight: 500;
+    flex-shrink: 0;
+  }
+  .agency-info { flex: 1; min-width: 0; }
+  .agency-name {
+    font-size: 12px; font-weight: 500;
+    color: var(--ink);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .agency-name.muted { color: var(--ink-mid); font-weight: 400; }
+  .verified-badge {
+    flex-shrink: 0;
+    background: var(--green-bg);
+    border-radius: 99px;
+    padding: 2px 7px;
+    font-size: 10px;
+    color: var(--green-text);
+    font-weight: 500;
+  }
+  .pending-badge {
+    flex-shrink: 0;
+    background: var(--amber-bg);
+    border-radius: 99px;
+    padding: 2px 7px;
+    font-size: 10px;
+    color: var(--amber-text);
+    font-weight: 500;
+  }
+
+  /* card image */
+  .card-photo {
+    width: 100%;
+    height: 120px;
+    background: linear-gradient(135deg, var(--sky-soft) 0%, var(--sky) 100%);
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+  }
+  .card-photo svg { opacity: 0.25; color: var(--sky-text); }
+  .op-badge {
+    position: absolute; top: 8px; left: 8px;
+    font-size: 10px; font-weight: 500;
+    padding: 3px 8px; border-radius: 99px;
+  }
+  .op-alq { background: var(--green-bg); color: var(--green-text); }
+  .op-vta { background: var(--sky-soft); color: var(--sky-text); border: 1px solid var(--sky-border); }
+  .op-cpo { background: var(--amber-bg); color: var(--amber-text); }
+  .op-com { background: var(--violet-bg); color: var(--violet-text); }
+
+  /* card body */
+  .card-info { padding: 12px 14px; }
+  .card-price {
+    font-family: 'Fraunces', serif;
+    font-size: 17px; font-weight: 500;
+    color: var(--ink);
+    margin-bottom: 2px;
+  }
+  .card-desc {
+    font-size: 12px; color: var(--ink-mid);
+    margin-bottom: 10px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .card-feats {
+    display: flex; gap: 10px;
+    flex-wrap: wrap;
+  }
+  .feat-item {
+    font-size: 11px; color: var(--ink-light);
+    display: flex; align-items: center; gap: 3px;
+  }
+  .feat-dot { width: 3px; height: 3px; border-radius: 50%; background: var(--sky-mid); }
+
+  /* card bottom — publisher type */
+  .card-bottom {
+    padding: 8px 14px;
+    border-top: 1px solid var(--border);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .pub-icon {
+    width: 18px; height: 18px; border-radius: 50%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .pub-icon svg { display: block; }
+  .pub-label { font-size: 11px; color: var(--ink-light); }
+
+  /* ── LOAD MORE ── */
+  .load-more {
+    text-align: center;
+    padding: 32px 0 8px;
+  }
+  .btn-load {
+    font-size: 13px; font-family: 'DM Sans', sans-serif;
+    color: var(--sky-text);
+    background: var(--sky-soft);
+    border: 1px solid var(--sky-border);
+    border-radius: var(--radius-sm);
+    padding: 10px 28px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-load:hover { background: var(--sky); }
+
+  /* ── AGENCIES SECTION ── */
+  .agencies-section {
+    background: var(--white);
+    border-top: 1px solid var(--border);
+    padding: 32px;
+    margin-top: 12px;
+  }
+  .section-heading {
+    font-family: 'Fraunces', serif;
+    font-size: 20px; font-weight: 300;
+    color: var(--ink);
+    margin-bottom: 4px;
+    letter-spacing: -0.3px;
+  }
+  .section-sub { font-size: 13px; color: var(--ink-light); margin-bottom: 20px; }
+  .agencies-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 10px;
+    max-width: 1200px;
+  }
+  .agency-chip {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    display: flex; align-items: center; gap: 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .agency-chip:hover { border-color: var(--sky-border); background: var(--sky-soft); }
+  .agency-chip-avatar {
+    width: 30px; height: 30px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 500; flex-shrink: 0;
+  }
+  .agency-chip-info { min-width: 0; }
+  .agency-chip-name { font-size: 12px; font-weight: 500; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .agency-chip-count { font-size: 11px; color: var(--ink-light); }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--white);
+    border-top: 1px solid var(--sky-border);
+    padding: 20px 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .footer-logo { display: flex; align-items: center; gap: 8px; }
+  .footer-logo .logo-text { font-size: 15px; }
+  .footer-links { display: flex; gap: 20px; }
+  .footer-link { font-size: 12px; color: var(--ink-light); cursor: pointer; }
+  .footer-link:hover { color: var(--sky-text); }
+  .footer-copy { font-size: 11px; color: var(--ink-light); }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .prop-card {
+    animation: fadeUp 0.3s ease both;
+  }
+  .prop-card:nth-child(1) { animation-delay: 0.05s; }
+  .prop-card:nth-child(2) { animation-delay: 0.10s; }
+  .prop-card:nth-child(3) { animation-delay: 0.15s; }
+  .prop-card:nth-child(4) { animation-delay: 0.20s; }
+  .prop-card:nth-child(5) { animation-delay: 0.25s; }
+  .prop-card:nth-child(6) { animation-delay: 0.30s; }
+  .prop-card:nth-child(7) { animation-delay: 0.35s; }
+  .prop-card:nth-child(8) { animation-delay: 0.40s; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="logo" href="#">
+    <div class="logo-mark">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2A6A8F" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+    </div>
+    <span class="logo-text">Gchu <span>Propiedades</span></span>
+  </a>
+
+  <div class="nav-links">
+    <a class="nav-link active">Inicio</a>
+    <a class="nav-link">Alquileres</a>
+    <a class="nav-link">Ventas</a>
+    <a class="nav-link">Comercial</a>
+    <a class="nav-link">Campo</a>
+    <a class="nav-link">Agencias</a>
+  </div>
+
+  <div class="nav-right">
+    <button class="btn-secondary">Ingresar</button>
+    <button class="btn-primary">Publicar propiedad</button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-eyebrow">
+      <div class="hero-eyebrow-dot"></div>
+      Gualeguaychú, Entre Ríos
+    </div>
+    <h1 class="hero-title">Todas las propiedades,<br><em>un solo lugar</em></h1>
+    <p class="hero-sub">El mercado inmobiliario completo de Gualeguaychú. Sin recorrer 20 páginas distintas.</p>
+
+    <div class="search-box">
+      <div class="search-input-wrap">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+        <input type="text" placeholder="Zona, barrio, calle..." />
+      </div>
+      <div class="search-sep"></div>
+      <select class="search-select">
+        <option>Tipo de inmueble</option>
+        <option>Casa</option>
+        <option>Departamento</option>
+        <option>Local comercial</option>
+        <option>Oficina</option>
+        <option>Campo</option>
+        <option>Terreno</option>
+      </select>
+      <div class="search-sep"></div>
+      <select class="search-select">
+        <option>Operación</option>
+        <option>Alquiler</option>
+        <option>Venta</option>
+        <option>Arrendamiento</option>
+      </select>
+      <div class="search-sep"></div>
+      <select class="search-select">
+        <option>Precio máx.</option>
+        <option>Hasta $200.000</option>
+        <option>Hasta $400.000</option>
+        <option>Hasta $800.000</option>
+        <option>Hasta USD 100.000</option>
+      </select>
+      <button class="search-btn">Buscar</button>
+    </div>
+
+    <div class="hero-stats">
+      <div class="stat"><strong>312</strong> propiedades activas</div>
+      <div class="stat"><strong>24</strong> agencias verificadas</div>
+      <div class="stat"><strong>5</strong> nuevas hoy</div>
+    </div>
+  </div>
+</div>
+
+<!-- FILTERS -->
+<div class="filters-bar">
+  <span class="filter-label">Operación:</span>
+  <div class="filter-group">
+    <span class="chip active" onclick="setFilter(this, 'op')">Todas</span>
+    <span class="chip" onclick="setFilter(this, 'op')">Alquiler</span>
+    <span class="chip" onclick="setFilter(this, 'op')">Venta</span>
+    <span class="chip" onclick="setFilter(this, 'op')">Campo / arrendamiento</span>
+    <span class="chip" onclick="setFilter(this, 'op')">Comercial</span>
+  </div>
+  <div class="filter-divider"></div>
+  <span class="filter-label">Tipo:</span>
+  <div class="filter-group">
+    <span class="chip active" onclick="setFilter(this, 'tipo')">Todos</span>
+    <span class="chip" onclick="setFilter(this, 'tipo')">Casa</span>
+    <span class="chip" onclick="setFilter(this, 'tipo')">Departamento</span>
+    <span class="chip" onclick="setFilter(this, 'tipo')">Local</span>
+    <span class="chip" onclick="setFilter(this, 'tipo')">Campo</span>
+    <span class="chip" onclick="setFilter(this, 'tipo')">Terreno</span>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <div class="results-header">
+    <div>
+      <span class="results-title">Últimas publicaciones</span>
+      <span class="results-count" style="margin-left: 10px;">312 resultados</span>
+    </div>
+    <select class="sort-select">
+      <option>Más recientes primero</option>
+      <option>Menor precio</option>
+      <option>Mayor precio</option>
+    </select>
+  </div>
+
+  <div class="prop-grid" id="prop-grid">
+
+    <!-- CARD 1 — agencia -->
+    <div class="prop-card">
+      <div class="card-agency">
+        <div class="agency-avatar" style="background:#C8E6F5; color:#2A6A8F;">IR</div>
+        <div class="agency-info">
+          <div class="agency-name">Inmobiliaria Ríos</div>
+        </div>
+        <span class="verified-badge">Verificada</span>
+      </div>
+      <div class="card-photo">
+        <span class="op-badge op-alq">Alquiler</span>
+        <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      </div>
+      <div class="card-info">
+        <p class="card-price">$280.000<span style="font-size:12px;font-family:'DM Sans',sans-serif;font-weight:400;color:var(--ink-mid)">/mes</span></p>
+        <p class="card-desc">Casa 3 amb. — Barrio Centro</p>
+        <div class="card-feats">
+          <span class="feat-item"><span class="feat-dot"></span>3 dorm.</span>
+          <span class="feat-item"><span class="feat-dot"></span>2 baños</span>
+          <span class="feat-item"><span class="feat-dot"></span>90 m²</span>
+        </div>
+      </div>
+      <div class="card-bottom">
+        <div class="pub-icon">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--ink-light)" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
+        </div>
+        <span class="pub-label">Agencia inmobiliaria</span>
+      </div>
+    </div>
+
+    <!-- CARD 2 -->
+    <div class="prop-card">
+      <div class="card-agency">
+        <div class="agency-avatar" style="background:#D4EAF7; color:#1A5C80;">NP</div>
+        <div class="agency-info">
+          <div class="agency-name">Norte Propiedades</div>
+        </div>
+        <span class="verified-badge">Verificada</span>
+      </div>
+      <div class="card-photo" style="background: linear-gradient(135deg, #EBF6FC 0%, #C8E6F5 100%);">
+        <span class="op-badge op-vta">Venta</span>
+        <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      </div>
+      <div class="card-info">
+        <p class="card-price">USD 95.000</p>
+        <p class="card-desc">Casa 4 amb. — Barrio Parque</p>
+        <div class="card-feats">
+          <span class="feat-item"><span class="feat-dot"></span>4 dorm.</span>
+          <span class="feat-item"><span class="feat-dot"></span>2 baños</span>
+          <span class="feat-item"><span class="feat-dot"></span>140 m²</span>
+        </div>
+      </div>
+      <div class="card-bottom">
+        <div class="pub-icon">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--ink-light)" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
+        </div>
+        <span class="pub-label">Agencia inmobiliaria</span>
+      </div>
+    </div>
+
+    <!-- CARD 3 -->
+    <div class="prop-card">
+      <div class="card-agency">
+        <div class="agency-avatar" style="background:#BDE0F5; color:#1A5C80;">GI</div>
+        <div class="agency-info">
+          <div class="agency-name">GBA Inmuebles</div>
+        </div>
+        <span class="verified-badge">Verificada</span>
+      </div>
+      <div class="card-photo" style="background: linear-gradient(135deg, #EBF6FC 0%, #A8D4ED 100%);">
+        <span class="op-badge op-alq">Alquiler</span>
+        <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+      </div>
+      <div class="card-info">
+        <p class="card-price">$180.000<span style="font-size:12px;font-family:'DM Sans',sans-serif;font-weight:400;color:var(--ink-mid)">/mes</span></p>
+        <p class="card-desc">Dpto 2 amb. — San Isidro</p>
+        <div class="card-feats">
+          <span class="feat-item"><span class="feat-dot"></span>2 dorm.</span>
+          <span class="feat-item"><span class="feat-dot"></span>1 baño</span>
+          <span class="feat-item"><span class="feat-dot"></span>55 m²</span>
+        </div>
+      </div>
+      <div class="card-bottom">
+        <div class="pub-icon">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--ink-light)" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
+        </div>
+        <span class="pub-label">Agencia inmobiliaria</span>
+      </div>
+    </div>
+
+    <!-- CARD 4 — comercial -->
+    <div class="prop-card">
+      <div class="card-agency">
+        <div class="agency-avatar" style="background:#C8E6F5; color:#2A6A8F;">CR</div>
+        <div class="agency-info">
+          <div class="agency-name">Comercial Ríos</div>
+        </div>
+        <span class="verified-badge">Verificada</span>
+      </div>
+      <div class="card-photo" style="background: linear-gradient(135deg, #EBF6FC 0%, #C8E6F5 100%);">
+        <span class="op-badge op-com">Comercial</span>
+        <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><path d="M9 22V12h6v10"/></svg>
+      </div>
+      <div class="card-info">
+        <p class="card-price">$350.000<span style="font-size:12px;font-family:'DM Sans',sans-serif;font-weight:400;color:var(--ink-mid)">/mes</span></p>
+        <p class="card-desc">Local — Centro, esquina</p>
+        <div class="card-feats">
+          <span class="feat-item"><span class="feat-dot"></span>Planta baja</span>
+          <span class="feat-item"><span class="feat-dot"></span>80 m²</span>
+        </div>
+      </div>
+      <div class="card-bottom">
+        <div class="pub-icon">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--ink-light)" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
+        </div>
+        <span class="pub-label">Agencia inmobiliaria</span>
+      </div>
+    </div>
+
+    <!-- CARD 5 — campo -->
+    <div class="prop-card">
+      <div class="card-agency">
+        <div class="agency-avatar" style="background:#D4EAF7; color:#1A5C80;">AR</div>
+        <div class="agency-info">
+          <div class="agency-name">Agraria Rural</div>
+        </div>
+        <span class="verified-badge">Verificada</span>
+      </div>
+      <div class="card-photo" style="background: linear-gradient(135deg, #EBF6FC 0%, #BDE0F5 100%);">
+        <span class="op-badge op-cpo">Campo</span>
+        <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M2 20h20M4 20V10l8-6 8 6v10"/></svg>
+      </div>
+      <div class="card-info">
+        <p class="card-price">USD 180.000</p>
+        <p class="card-desc">Campo 50 has. — Ruta 14</p>
+        <div class="card-feats">
+          <span class="feat-item"><span class="feat-dot"></span>50 has.</span>
+          <span class="feat-item"><span class="feat-dot"></span>Agrícola</span>
+          <span class="feat-item"><span class="feat-dot"></span>Agua</span>
+        </div>
+      </div>
+      <div class="card-bottom">
+        <div class="pub-icon">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--ink-light)" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
+        </div>
+        <span class="pub-label">Agencia inmobiliaria</span>
+      </div>
+    </div>
+
+    <!-- CARD 6 -->
+    <div class="prop-card">
+      <div class="card-agency">
+        <div class="agency-avatar" style="background:#C8E6F5; color:#2A6A8F;">IR</div>
+        <div class="agency-info">
+          <div class="agency-name">Inmobiliaria Ríos</div>
+        </div>
+        <span class="verified-badge">Verificada</span>
+      </div>
+      <div class="card-photo" style="background: linear-gradient(135deg, #EBF6FC 0%, #A8D4ED 100%);">
+        <span class="op-badge op-vta">Venta</span>
+        <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+      </div>
+      <div class="card-info">
+        <p class="card-price">USD 42.000</p>
+        <p class="card-desc">Dpto 1 amb. — Costanera</p>
+        <div class="card-feats">
+          <span class="feat-item"><span class="feat-dot"></span>1 dorm.</span>
+          <span class="feat-item"><span class="feat-dot"></span>1 baño</span>
+          <span class="feat-item"><span class="feat-dot"></span>38 m²</span>
+        </div>
+      </div>
+      <div class="card-bottom">
+        <div class="pub-icon">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--ink-light)" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
+        </div>
+        <span class="pub-label">Agencia inmobiliaria</span>
+      </div>
+    </div>
+
+    <!-- CARD 7 — dueño directo, pendiente -->
+    <div class="prop-card">
+      <div class="card-agency particular">
+        <div class="agency-avatar" style="background:var(--border); color:var(--ink-mid);">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </div>
+        <div class="agency-info">
+          <div class="agency-name muted">Dueño directo</div>
+        </div>
+        <span class="pending-badge">Pendiente</span>
+      </div>
+      <div class="card-photo" style="background: linear-gradient(135deg, #F5F5F0 0%, #E8E8E0 100%);">
+        <span class="op-badge op-alq">Alquiler</span>
+        <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+      </div>
+      <div class="card-info">
+        <p class="card-price">$160.000<span style="font-size:12px;font-family:'DM Sans',sans-serif;font-weight:400;color:var(--ink-mid)">/mes</span></p>
+        <p class="card-desc">Dpto 2 amb. — Costanera</p>
+        <div class="card-feats">
+          <span class="feat-item"><span class="feat-dot"></span>2 dorm.</span>
+          <span class="feat-item"><span class="feat-dot"></span>1 baño</span>
+          <span class="feat-item"><span class="feat-dot"></span>52 m²</span>
+        </div>
+      </div>
+      <div class="card-bottom">
+        <div class="pub-icon">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--ink-light)" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </div>
+        <span class="pub-label">Particular</span>
+      </div>
+    </div>
+
+    <!-- CARD 8 -->
+    <div class="prop-card">
+      <div class="card-agency">
+        <div class="agency-avatar" style="background:#BDE0F5; color:#1A5C80;">SP</div>
+        <div class="agency-info">
+          <div class="agency-name">Sur Propiedades</div>
+        </div>
+        <span class="verified-badge">Verificada</span>
+      </div>
+      <div class="card-photo" style="background: linear-gradient(135deg, #EBF6FC 0%, #C8E6F5 100%);">
+        <span class="op-badge op-alq">Alquiler</span>
+        <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      </div>
+      <div class="card-info">
+        <p class="card-price">$220.000<span style="font-size:12px;font-family:'DM Sans',sans-serif;font-weight:400;color:var(--ink-mid)">/mes</span></p>
+        <p class="card-desc">Casa 2 amb. — Villa del Parque</p>
+        <div class="card-feats">
+          <span class="feat-item"><span class="feat-dot"></span>2 dorm.</span>
+          <span class="feat-item"><span class="feat-dot"></span>1 baño</span>
+          <span class="feat-item"><span class="feat-dot"></span>75 m²</span>
+        </div>
+      </div>
+      <div class="card-bottom">
+        <div class="pub-icon">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--ink-light)" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
+        </div>
+        <span class="pub-label">Agencia inmobiliaria</span>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="load-more">
+    <button class="btn-load">Ver más propiedades</button>
+  </div>
+</div>
+
+<!-- AGENCIES SECTION -->
+<div class="agencies-section">
+  <div style="max-width:1200px; margin: 0 auto;">
+    <h2 class="section-heading">Agencias verificadas</h2>
+    <p class="section-sub">Todas las inmobiliarias de Gualeguaychú en un solo lugar</p>
+    <div class="agencies-grid">
+      <div class="agency-chip">
+        <div class="agency-chip-avatar" style="background:#C8E6F5;color:#2A6A8F;">IR</div>
+        <div class="agency-chip-info"><div class="agency-chip-name">Inm. Ríos</div><div class="agency-chip-count">48 props.</div></div>
+      </div>
+      <div class="agency-chip">
+        <div class="agency-chip-avatar" style="background:#D4EAF7;color:#1A5C80;">NP</div>
+        <div class="agency-chip-info"><div class="agency-chip-name">Norte Prop.</div><div class="agency-chip-count">32 props.</div></div>
+      </div>
+      <div class="agency-chip">
+        <div class="agency-chip-avatar" style="background:#BDE0F5;color:#1A5C80;">GI</div>
+        <div class="agency-chip-info"><div class="agency-chip-name">GBA Inmuebles</div><div class="agency-chip-count">27 props.</div></div>
+      </div>
+      <div class="agency-chip">
+        <div class="agency-chip-avatar" style="background:#D4EAF7;color:#2A6A8F;">AR</div>
+        <div class="agency-chip-info"><div class="agency-chip-name">Agraria Rural</div><div class="agency-chip-count">21 props.</div></div>
+      </div>
+      <div class="agency-chip">
+        <div class="agency-chip-avatar" style="background:#C8E6F5;color:#1A5C80;">SP</div>
+        <div class="agency-chip-info"><div class="agency-chip-name">Sur Prop.</div><div class="agency-chip-count">19 props.</div></div>
+      </div>
+      <div class="agency-chip">
+        <div class="agency-chip-avatar" style="background:#BDE0F5;color:#2A6A8F;">CR</div>
+        <div class="agency-chip-info"><div class="agency-chip-name">Comercial Ríos</div><div class="agency-chip-count">15 props.</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">
+    <div class="logo-mark">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2A6A8F" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+    </div>
+    <span class="logo-text">Gchu <span>Propiedades</span></span>
+  </div>
+  <div class="footer-links">
+    <span class="footer-link">Inicio</span>
+    <span class="footer-link">Agencias</span>
+    <span class="footer-link">Publicar</span>
+    <span class="footer-link">Contacto</span>
+  </div>
+  <span class="footer-copy">Gualeguaychú, Entre Ríos · 2025</span>
+</footer>
+
+<script>
+  function setFilter(el, group) {
+    const parent = el.closest('.filter-group');
+    parent.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+  }
+</script>
+
+</body>
+</html>
