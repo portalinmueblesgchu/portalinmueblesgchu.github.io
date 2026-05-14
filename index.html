@@ -289,13 +289,13 @@
     overflow: hidden;
     transition: border-color 0.15s, transform 0.15s;
     cursor: pointer;
+    animation: fadeUp 0.3s ease both;
   }
   .prop-card:hover {
     border-color: var(--sky-mid);
     transform: translateY(-2px);
   }
 
-  /* card top — agency */
   .card-agency {
     padding: 8px 12px;
     display: flex;
@@ -304,9 +304,7 @@
     border-bottom: 1px solid var(--border);
     background: var(--sky-soft);
   }
-  .card-agency.particular {
-    background: var(--surface);
-  }
+  .card-agency.particular { background: var(--surface); }
   .agency-avatar {
     width: 24px; height: 24px;
     border-radius: 50%;
@@ -340,26 +338,31 @@
     font-weight: 500;
   }
 
-  /* card image */
   .card-photo {
     width: 100%;
     height: 120px;
     background: linear-gradient(135deg, var(--sky-soft) 0%, var(--sky) 100%);
     display: flex; align-items: center; justify-content: center;
     position: relative;
+    overflow: hidden;
+  }
+  .card-photo img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    position: absolute; top: 0; left: 0;
   }
   .card-photo svg { opacity: 0.25; color: var(--sky-text); }
   .op-badge {
     position: absolute; top: 8px; left: 8px;
     font-size: 10px; font-weight: 500;
     padding: 3px 8px; border-radius: 99px;
+    z-index: 1;
   }
   .op-alq { background: var(--green-bg); color: var(--green-text); }
   .op-vta { background: var(--sky-soft); color: var(--sky-text); border: 1px solid var(--sky-border); }
   .op-cpo { background: var(--amber-bg); color: var(--amber-text); }
   .op-com { background: var(--violet-bg); color: var(--violet-text); }
 
-  /* card body */
   .card-info { padding: 12px 14px; }
   .card-price {
     font-family: 'Fraunces', serif;
@@ -372,17 +375,13 @@
     margin-bottom: 10px;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
-  .card-feats {
-    display: flex; gap: 10px;
-    flex-wrap: wrap;
-  }
+  .card-feats { display: flex; gap: 10px; flex-wrap: wrap; }
   .feat-item {
     font-size: 11px; color: var(--ink-light);
     display: flex; align-items: center; gap: 3px;
   }
   .feat-dot { width: 3px; height: 3px; border-radius: 50%; background: var(--sky-mid); }
 
-  /* card bottom — publisher type */
   .card-bottom {
     padding: 8px 14px;
     border-top: 1px solid var(--border);
@@ -395,14 +394,10 @@
     display: flex; align-items: center; justify-content: center;
     flex-shrink: 0;
   }
-  .pub-icon svg { display: block; }
   .pub-label { font-size: 11px; color: var(--ink-light); }
 
   /* ── LOAD MORE ── */
-  .load-more {
-    text-align: center;
-    padding: 32px 0 8px;
-  }
+  .load-more { text-align: center; padding: 32px 0 8px; }
   .btn-load {
     font-size: 13px; font-family: 'DM Sans', sans-serif;
     color: var(--sky-text);
@@ -414,6 +409,30 @@
     transition: all 0.15s;
   }
   .btn-load:hover { background: var(--sky); }
+
+  /* ── LOADING STATE ── */
+  .loading-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 48px 0;
+    color: var(--ink-light);
+    font-size: 14px;
+  }
+  .loading-spinner {
+    width: 28px; height: 28px;
+    border: 2px solid var(--sky-border);
+    border-top-color: var(--sky-deep);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    margin: 0 auto 12px;
+  }
+  .empty-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 48px 0;
+    color: var(--ink-light);
+    font-size: 14px;
+  }
 
   /* ── AGENCIES SECTION ── */
   .agencies-section {
@@ -478,17 +497,9 @@
     from { opacity: 0; transform: translateY(12px); }
     to { opacity: 1; transform: translateY(0); }
   }
-  .prop-card {
-    animation: fadeUp 0.3s ease both;
+  @keyframes spin {
+    to { transform: rotate(360deg); }
   }
-  .prop-card:nth-child(1) { animation-delay: 0.05s; }
-  .prop-card:nth-child(2) { animation-delay: 0.10s; }
-  .prop-card:nth-child(3) { animation-delay: 0.15s; }
-  .prop-card:nth-child(4) { animation-delay: 0.20s; }
-  .prop-card:nth-child(5) { animation-delay: 0.25s; }
-  .prop-card:nth-child(6) { animation-delay: 0.30s; }
-  .prop-card:nth-child(7) { animation-delay: 0.35s; }
-  .prop-card:nth-child(8) { animation-delay: 0.40s; }
 </style>
 </head>
 <body>
@@ -503,12 +514,12 @@
   </a>
 
   <div class="nav-links">
-    <a class="nav-link active">Inicio</a>
-    <a class="nav-link">Alquileres</a>
-    <a class="nav-link">Ventas</a>
-    <a class="nav-link">Comercial</a>
-    <a class="nav-link">Campo</a>
-    <a class="nav-link">Agencias</a>
+    <a class="nav-link active" onclick="filterByOp('')">Inicio</a>
+    <a class="nav-link" onclick="filterByOp('Alquiler')">Alquileres</a>
+    <a class="nav-link" onclick="filterByOp('Venta')">Ventas</a>
+    <a class="nav-link" onclick="filterByOp('Comercial')">Comercial</a>
+    <a class="nav-link" onclick="filterByOp('Campo')">Campo</a>
+    <a class="nav-link" onclick="filterByOp('')">Agencias</a>
   </div>
 
   <div class="nav-right">
@@ -530,11 +541,11 @@
     <div class="search-box">
       <div class="search-input-wrap">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-        <input type="text" placeholder="Zona, barrio, calle..." />
+        <input type="text" id="search-input" placeholder="Zona, barrio, calle..." oninput="applyFilters()" />
       </div>
       <div class="search-sep"></div>
-      <select class="search-select">
-        <option>Tipo de inmueble</option>
+      <select class="search-select" id="filter-tipo" onchange="applyFilters()">
+        <option value="">Tipo de inmueble</option>
         <option>Casa</option>
         <option>Departamento</option>
         <option>Local comercial</option>
@@ -543,27 +554,20 @@
         <option>Terreno</option>
       </select>
       <div class="search-sep"></div>
-      <select class="search-select">
-        <option>Operación</option>
+      <select class="search-select" id="filter-op" onchange="applyFilters()">
+        <option value="">Operación</option>
         <option>Alquiler</option>
         <option>Venta</option>
-        <option>Arrendamiento</option>
+        <option>Campo</option>
+        <option>Comercial</option>
       </select>
-      <div class="search-sep"></div>
-      <select class="search-select">
-        <option>Precio máx.</option>
-        <option>Hasta $200.000</option>
-        <option>Hasta $400.000</option>
-        <option>Hasta $800.000</option>
-        <option>Hasta USD 100.000</option>
-      </select>
-      <button class="search-btn">Buscar</button>
+      <button class="search-btn" onclick="applyFilters()">Buscar</button>
     </div>
 
     <div class="hero-stats">
-      <div class="stat"><strong>312</strong> propiedades activas</div>
-      <div class="stat"><strong>24</strong> agencias verificadas</div>
-      <div class="stat"><strong>5</strong> nuevas hoy</div>
+      <div class="stat"><strong id="stat-total">—</strong> propiedades activas</div>
+      <div class="stat"><strong id="stat-agencias">—</strong> agencias verificadas</div>
+      <div class="stat"><strong id="stat-nuevas">—</strong> nuevas hoy</div>
     </div>
   </div>
 </div>
@@ -571,287 +575,49 @@
 <!-- FILTERS -->
 <div class="filters-bar">
   <span class="filter-label">Operación:</span>
-  <div class="filter-group">
-    <span class="chip active" onclick="setFilter(this, 'op')">Todas</span>
-    <span class="chip" onclick="setFilter(this, 'op')">Alquiler</span>
-    <span class="chip" onclick="setFilter(this, 'op')">Venta</span>
-    <span class="chip" onclick="setFilter(this, 'op')">Campo / arrendamiento</span>
-    <span class="chip" onclick="setFilter(this, 'op')">Comercial</span>
+  <div class="filter-group" id="filter-op-chips">
+    <span class="chip active" onclick="setChip(this,'op','')">Todas</span>
+    <span class="chip" onclick="setChip(this,'op','Alquiler')">Alquiler</span>
+    <span class="chip" onclick="setChip(this,'op','Venta')">Venta</span>
+    <span class="chip" onclick="setChip(this,'op','Campo')">Campo / arrendamiento</span>
+    <span class="chip" onclick="setChip(this,'op','Comercial')">Comercial</span>
   </div>
   <div class="filter-divider"></div>
   <span class="filter-label">Tipo:</span>
-  <div class="filter-group">
-    <span class="chip active" onclick="setFilter(this, 'tipo')">Todos</span>
-    <span class="chip" onclick="setFilter(this, 'tipo')">Casa</span>
-    <span class="chip" onclick="setFilter(this, 'tipo')">Departamento</span>
-    <span class="chip" onclick="setFilter(this, 'tipo')">Local</span>
-    <span class="chip" onclick="setFilter(this, 'tipo')">Campo</span>
-    <span class="chip" onclick="setFilter(this, 'tipo')">Terreno</span>
+  <div class="filter-group" id="filter-tipo-chips">
+    <span class="chip active" onclick="setChip(this,'tipo','')">Todos</span>
+    <span class="chip" onclick="setChip(this,'tipo','Casa')">Casa</span>
+    <span class="chip" onclick="setChip(this,'tipo','Departamento')">Departamento</span>
+    <span class="chip" onclick="setChip(this,'tipo','Local')">Local</span>
+    <span class="chip" onclick="setChip(this,'tipo','Campo')">Campo</span>
+    <span class="chip" onclick="setChip(this,'tipo','Terreno')">Terreno</span>
   </div>
 </div>
 
 <!-- MAIN -->
 <div class="main">
-
   <div class="results-header">
     <div>
       <span class="results-title">Últimas publicaciones</span>
-      <span class="results-count" style="margin-left: 10px;">312 resultados</span>
+      <span class="results-count" id="results-count" style="margin-left: 10px;">cargando...</span>
     </div>
-    <select class="sort-select">
-      <option>Más recientes primero</option>
-      <option>Menor precio</option>
-      <option>Mayor precio</option>
+    <select class="sort-select" id="sort-select" onchange="applyFilters()">
+      <option value="desc">Más recientes primero</option>
+      <option value="asc">Más antiguos primero</option>
+      <option value="precio-asc">Menor precio</option>
+      <option value="precio-desc">Mayor precio</option>
     </select>
   </div>
 
   <div class="prop-grid" id="prop-grid">
-
-    <!-- CARD 1 — agencia -->
-    <div class="prop-card">
-      <div class="card-agency">
-        <div class="agency-avatar" style="background:#C8E6F5; color:#2A6A8F;">IR</div>
-        <div class="agency-info">
-          <div class="agency-name">Inmobiliaria Ríos</div>
-        </div>
-        <span class="verified-badge">Verificada</span>
-      </div>
-      <div class="card-photo">
-        <span class="op-badge op-alq">Alquiler</span>
-        <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-      </div>
-      <div class="card-info">
-        <p class="card-price">$280.000<span style="font-size:12px;font-family:'DM Sans',sans-serif;font-weight:400;color:var(--ink-mid)">/mes</span></p>
-        <p class="card-desc">Casa 3 amb. — Barrio Centro</p>
-        <div class="card-feats">
-          <span class="feat-item"><span class="feat-dot"></span>3 dorm.</span>
-          <span class="feat-item"><span class="feat-dot"></span>2 baños</span>
-          <span class="feat-item"><span class="feat-dot"></span>90 m²</span>
-        </div>
-      </div>
-      <div class="card-bottom">
-        <div class="pub-icon">
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--ink-light)" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
-        </div>
-        <span class="pub-label">Agencia inmobiliaria</span>
-      </div>
+    <div class="loading-state">
+      <div class="loading-spinner"></div>
+      Cargando propiedades...
     </div>
-
-    <!-- CARD 2 -->
-    <div class="prop-card">
-      <div class="card-agency">
-        <div class="agency-avatar" style="background:#D4EAF7; color:#1A5C80;">NP</div>
-        <div class="agency-info">
-          <div class="agency-name">Norte Propiedades</div>
-        </div>
-        <span class="verified-badge">Verificada</span>
-      </div>
-      <div class="card-photo" style="background: linear-gradient(135deg, #EBF6FC 0%, #C8E6F5 100%);">
-        <span class="op-badge op-vta">Venta</span>
-        <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-      </div>
-      <div class="card-info">
-        <p class="card-price">USD 95.000</p>
-        <p class="card-desc">Casa 4 amb. — Barrio Parque</p>
-        <div class="card-feats">
-          <span class="feat-item"><span class="feat-dot"></span>4 dorm.</span>
-          <span class="feat-item"><span class="feat-dot"></span>2 baños</span>
-          <span class="feat-item"><span class="feat-dot"></span>140 m²</span>
-        </div>
-      </div>
-      <div class="card-bottom">
-        <div class="pub-icon">
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--ink-light)" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
-        </div>
-        <span class="pub-label">Agencia inmobiliaria</span>
-      </div>
-    </div>
-
-    <!-- CARD 3 -->
-    <div class="prop-card">
-      <div class="card-agency">
-        <div class="agency-avatar" style="background:#BDE0F5; color:#1A5C80;">GI</div>
-        <div class="agency-info">
-          <div class="agency-name">GBA Inmuebles</div>
-        </div>
-        <span class="verified-badge">Verificada</span>
-      </div>
-      <div class="card-photo" style="background: linear-gradient(135deg, #EBF6FC 0%, #A8D4ED 100%);">
-        <span class="op-badge op-alq">Alquiler</span>
-        <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
-      </div>
-      <div class="card-info">
-        <p class="card-price">$180.000<span style="font-size:12px;font-family:'DM Sans',sans-serif;font-weight:400;color:var(--ink-mid)">/mes</span></p>
-        <p class="card-desc">Dpto 2 amb. — San Isidro</p>
-        <div class="card-feats">
-          <span class="feat-item"><span class="feat-dot"></span>2 dorm.</span>
-          <span class="feat-item"><span class="feat-dot"></span>1 baño</span>
-          <span class="feat-item"><span class="feat-dot"></span>55 m²</span>
-        </div>
-      </div>
-      <div class="card-bottom">
-        <div class="pub-icon">
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--ink-light)" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
-        </div>
-        <span class="pub-label">Agencia inmobiliaria</span>
-      </div>
-    </div>
-
-    <!-- CARD 4 — comercial -->
-    <div class="prop-card">
-      <div class="card-agency">
-        <div class="agency-avatar" style="background:#C8E6F5; color:#2A6A8F;">CR</div>
-        <div class="agency-info">
-          <div class="agency-name">Comercial Ríos</div>
-        </div>
-        <span class="verified-badge">Verificada</span>
-      </div>
-      <div class="card-photo" style="background: linear-gradient(135deg, #EBF6FC 0%, #C8E6F5 100%);">
-        <span class="op-badge op-com">Comercial</span>
-        <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><path d="M9 22V12h6v10"/></svg>
-      </div>
-      <div class="card-info">
-        <p class="card-price">$350.000<span style="font-size:12px;font-family:'DM Sans',sans-serif;font-weight:400;color:var(--ink-mid)">/mes</span></p>
-        <p class="card-desc">Local — Centro, esquina</p>
-        <div class="card-feats">
-          <span class="feat-item"><span class="feat-dot"></span>Planta baja</span>
-          <span class="feat-item"><span class="feat-dot"></span>80 m²</span>
-        </div>
-      </div>
-      <div class="card-bottom">
-        <div class="pub-icon">
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--ink-light)" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
-        </div>
-        <span class="pub-label">Agencia inmobiliaria</span>
-      </div>
-    </div>
-
-    <!-- CARD 5 — campo -->
-    <div class="prop-card">
-      <div class="card-agency">
-        <div class="agency-avatar" style="background:#D4EAF7; color:#1A5C80;">AR</div>
-        <div class="agency-info">
-          <div class="agency-name">Agraria Rural</div>
-        </div>
-        <span class="verified-badge">Verificada</span>
-      </div>
-      <div class="card-photo" style="background: linear-gradient(135deg, #EBF6FC 0%, #BDE0F5 100%);">
-        <span class="op-badge op-cpo">Campo</span>
-        <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M2 20h20M4 20V10l8-6 8 6v10"/></svg>
-      </div>
-      <div class="card-info">
-        <p class="card-price">USD 180.000</p>
-        <p class="card-desc">Campo 50 has. — Ruta 14</p>
-        <div class="card-feats">
-          <span class="feat-item"><span class="feat-dot"></span>50 has.</span>
-          <span class="feat-item"><span class="feat-dot"></span>Agrícola</span>
-          <span class="feat-item"><span class="feat-dot"></span>Agua</span>
-        </div>
-      </div>
-      <div class="card-bottom">
-        <div class="pub-icon">
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--ink-light)" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
-        </div>
-        <span class="pub-label">Agencia inmobiliaria</span>
-      </div>
-    </div>
-
-    <!-- CARD 6 -->
-    <div class="prop-card">
-      <div class="card-agency">
-        <div class="agency-avatar" style="background:#C8E6F5; color:#2A6A8F;">IR</div>
-        <div class="agency-info">
-          <div class="agency-name">Inmobiliaria Ríos</div>
-        </div>
-        <span class="verified-badge">Verificada</span>
-      </div>
-      <div class="card-photo" style="background: linear-gradient(135deg, #EBF6FC 0%, #A8D4ED 100%);">
-        <span class="op-badge op-vta">Venta</span>
-        <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
-      </div>
-      <div class="card-info">
-        <p class="card-price">USD 42.000</p>
-        <p class="card-desc">Dpto 1 amb. — Costanera</p>
-        <div class="card-feats">
-          <span class="feat-item"><span class="feat-dot"></span>1 dorm.</span>
-          <span class="feat-item"><span class="feat-dot"></span>1 baño</span>
-          <span class="feat-item"><span class="feat-dot"></span>38 m²</span>
-        </div>
-      </div>
-      <div class="card-bottom">
-        <div class="pub-icon">
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--ink-light)" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
-        </div>
-        <span class="pub-label">Agencia inmobiliaria</span>
-      </div>
-    </div>
-
-    <!-- CARD 7 — dueño directo, pendiente -->
-    <div class="prop-card">
-      <div class="card-agency particular">
-        <div class="agency-avatar" style="background:var(--border); color:var(--ink-mid);">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-        </div>
-        <div class="agency-info">
-          <div class="agency-name muted">Dueño directo</div>
-        </div>
-        <span class="pending-badge">Pendiente</span>
-      </div>
-      <div class="card-photo" style="background: linear-gradient(135deg, #F5F5F0 0%, #E8E8E0 100%);">
-        <span class="op-badge op-alq">Alquiler</span>
-        <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
-      </div>
-      <div class="card-info">
-        <p class="card-price">$160.000<span style="font-size:12px;font-family:'DM Sans',sans-serif;font-weight:400;color:var(--ink-mid)">/mes</span></p>
-        <p class="card-desc">Dpto 2 amb. — Costanera</p>
-        <div class="card-feats">
-          <span class="feat-item"><span class="feat-dot"></span>2 dorm.</span>
-          <span class="feat-item"><span class="feat-dot"></span>1 baño</span>
-          <span class="feat-item"><span class="feat-dot"></span>52 m²</span>
-        </div>
-      </div>
-      <div class="card-bottom">
-        <div class="pub-icon">
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--ink-light)" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-        </div>
-        <span class="pub-label">Particular</span>
-      </div>
-    </div>
-
-    <!-- CARD 8 -->
-    <div class="prop-card">
-      <div class="card-agency">
-        <div class="agency-avatar" style="background:#BDE0F5; color:#1A5C80;">SP</div>
-        <div class="agency-info">
-          <div class="agency-name">Sur Propiedades</div>
-        </div>
-        <span class="verified-badge">Verificada</span>
-      </div>
-      <div class="card-photo" style="background: linear-gradient(135deg, #EBF6FC 0%, #C8E6F5 100%);">
-        <span class="op-badge op-alq">Alquiler</span>
-        <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-      </div>
-      <div class="card-info">
-        <p class="card-price">$220.000<span style="font-size:12px;font-family:'DM Sans',sans-serif;font-weight:400;color:var(--ink-mid)">/mes</span></p>
-        <p class="card-desc">Casa 2 amb. — Villa del Parque</p>
-        <div class="card-feats">
-          <span class="feat-item"><span class="feat-dot"></span>2 dorm.</span>
-          <span class="feat-item"><span class="feat-dot"></span>1 baño</span>
-          <span class="feat-item"><span class="feat-dot"></span>75 m²</span>
-        </div>
-      </div>
-      <div class="card-bottom">
-        <div class="pub-icon">
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--ink-light)" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>
-        </div>
-        <span class="pub-label">Agencia inmobiliaria</span>
-      </div>
-    </div>
-
   </div>
 
-  <div class="load-more">
-    <button class="btn-load">Ver más propiedades</button>
+  <div class="load-more" id="load-more" style="display:none;">
+    <button class="btn-load" onclick="loadMore()">Ver más propiedades</button>
   </div>
 </div>
 
@@ -860,31 +626,8 @@
   <div style="max-width:1200px; margin: 0 auto;">
     <h2 class="section-heading">Agencias verificadas</h2>
     <p class="section-sub">Todas las inmobiliarias de Gualeguaychú en un solo lugar</p>
-    <div class="agencies-grid">
-      <div class="agency-chip">
-        <div class="agency-chip-avatar" style="background:#C8E6F5;color:#2A6A8F;">IR</div>
-        <div class="agency-chip-info"><div class="agency-chip-name">Inm. Ríos</div><div class="agency-chip-count">48 props.</div></div>
-      </div>
-      <div class="agency-chip">
-        <div class="agency-chip-avatar" style="background:#D4EAF7;color:#1A5C80;">NP</div>
-        <div class="agency-chip-info"><div class="agency-chip-name">Norte Prop.</div><div class="agency-chip-count">32 props.</div></div>
-      </div>
-      <div class="agency-chip">
-        <div class="agency-chip-avatar" style="background:#BDE0F5;color:#1A5C80;">GI</div>
-        <div class="agency-chip-info"><div class="agency-chip-name">GBA Inmuebles</div><div class="agency-chip-count">27 props.</div></div>
-      </div>
-      <div class="agency-chip">
-        <div class="agency-chip-avatar" style="background:#D4EAF7;color:#2A6A8F;">AR</div>
-        <div class="agency-chip-info"><div class="agency-chip-name">Agraria Rural</div><div class="agency-chip-count">21 props.</div></div>
-      </div>
-      <div class="agency-chip">
-        <div class="agency-chip-avatar" style="background:#C8E6F5;color:#1A5C80;">SP</div>
-        <div class="agency-chip-info"><div class="agency-chip-name">Sur Prop.</div><div class="agency-chip-count">19 props.</div></div>
-      </div>
-      <div class="agency-chip">
-        <div class="agency-chip-avatar" style="background:#BDE0F5;color:#2A6A8F;">CR</div>
-        <div class="agency-chip-info"><div class="agency-chip-name">Comercial Ríos</div><div class="agency-chip-count">15 props.</div></div>
-      </div>
+    <div class="agencies-grid" id="agencies-grid">
+      <div class="loading-state" style="padding:20px 0;">Cargando agencias...</div>
     </div>
   </div>
 </div>
@@ -907,11 +650,317 @@
 </footer>
 
 <script>
-  function setFilter(el, group) {
+  // ── CONFIGURACIÓN AIRTABLE ──
+  const AIRTABLE_TOKEN = 'patER4gewZDm6fMEG.3d02774c8eeef996adf8d6c028ef7b621ef464cdc30773fb2a8245d670d69304';
+  const BASE_ID = 'appwDs1SjNTxZ90JV';
+  const TABLE_PROPIEDADES = 'Propiedades';
+  const TABLE_AGENCIAS = 'Agencias';
+
+  // ── ESTADO ──
+  let todasLasPropiedades = [];
+  let propiedadesFiltradas = [];
+  let paginaActual = 1;
+  const POR_PAGINA = 12;
+  let activeFilters = { op: '', tipo: '' };
+
+  // ── COLORES AVATAR ──
+  const avatarColors = [
+    { bg: '#C8E6F5', color: '#2A6A8F' },
+    { bg: '#D4EAF7', color: '#1A5C80' },
+    { bg: '#BDE0F5', color: '#1A5C80' },
+    { bg: '#D4EAF7', color: '#2A6A8F' },
+    { bg: '#E8F0F7', color: '#3A6080' },
+  ];
+  function getAvatarColor(nombre) {
+    const idx = (nombre || '').charCodeAt(0) % avatarColors.length;
+    return avatarColors[idx];
+  }
+  function getInitials(nombre) {
+    if (!nombre) return '?';
+    const words = nombre.trim().split(' ');
+    if (words.length >= 2) return (words[0][0] + words[1][0]).toUpperCase();
+    return nombre.substring(0, 2).toUpperCase();
+  }
+
+  // ── BADGE OPERACIÓN ──
+  function opBadgeClass(op) {
+    if (!op) return 'op-alq';
+    const o = op.toLowerCase();
+    if (o.includes('alquiler')) return 'op-alq';
+    if (o.includes('venta')) return 'op-vta';
+    if (o.includes('campo') || o.includes('arrendamiento')) return 'op-cpo';
+    if (o.includes('comercial')) return 'op-com';
+    return 'op-alq';
+  }
+
+  // ── ÍCONO TIPO ──
+  function tipoIcon(tipo) {
+    const t = (tipo || '').toLowerCase();
+    if (t.includes('departamento') || t.includes('dpto')) {
+      return `<svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>`;
+    }
+    if (t.includes('local') || t.includes('comercial') || t.includes('oficina')) {
+      return `<svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><path d="M9 22V12h6v10"/></svg>`;
+    }
+    if (t.includes('campo') || t.includes('terreno')) {
+      return `<svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M2 20h20M4 20V10l8-6 8 6v10"/></svg>`;
+    }
+    return `<svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`;
+  }
+
+  // ── FORMATO PRECIO ──
+  function formatPrecio(precio, moneda) {
+    if (!precio) return '—';
+    const num = Number(precio).toLocaleString('es-AR');
+    if (moneda === 'USD') return `USD ${num}`;
+    return `$${num}`;
+  }
+
+  // ── CONSTRUIR CARD ──
+  function buildCard(prop, agenciaNombre, agenciaVerificada) {
+    const f = prop.fields || {};
+    const esParticular = (f['Tipo Publicante'] || '').toLowerCase().includes('particular');
+    const pendiente = (f['Estado'] || '').toLowerCase().includes('pendiente');
+    const initials = esParticular ? '' : getInitials(agenciaNombre);
+    const colors = esParticular ? { bg: 'var(--border)', color: 'var(--ink-mid)' } : getAvatarColor(agenciaNombre);
+    const opClass = opBadgeClass(f['Operación']);
+    const opLabel = f['Operación'] || '';
+    const foto = f['Fotos'] && f['Fotos'][0] ? f['Fotos'][0].url : null;
+    const precioPorMes = (f['Operación'] || '').toLowerCase().includes('alquiler');
+    const duracionSuffix = precioPorMes
+      ? `<span style="font-size:12px;font-family:'DM Sans',sans-serif;font-weight:400;color:var(--ink-mid)">/mes</span>`
+      : '';
+
+    const feats = [];
+    if (f['Dormitorios']) feats.push(`<span class="feat-item"><span class="feat-dot"></span>${f['Dormitorios']} dorm.</span>`);
+    if (f['Baños']) feats.push(`<span class="feat-item"><span class="feat-dot"></span>${f['Baños']} baños</span>`);
+    if (f['Superficie m²']) feats.push(`<span class="feat-item"><span class="feat-dot"></span>${f['Superficie m²']} m²</span>`);
+
+    const agencyHeader = esParticular
+      ? `<div class="card-agency particular">
+          <div class="agency-avatar" style="background:${colors.bg}; color:${colors.color};">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </div>
+          <div class="agency-info"><div class="agency-name muted">Dueño directo</div></div>
+          ${pendiente ? '<span class="pending-badge">Pendiente</span>' : ''}
+        </div>`
+      : `<div class="card-agency">
+          <div class="agency-avatar" style="background:${colors.bg}; color:${colors.color};">${initials}</div>
+          <div class="agency-info"><div class="agency-name">${agenciaNombre || 'Agencia'}</div></div>
+          ${agenciaVerificada ? '<span class="verified-badge">Verificada</span>' : ''}
+        </div>`;
+
+    const fotoHTML = foto
+      ? `<img src="${foto}" alt="foto propiedad" loading="lazy">`
+      : tipoIcon(f['Tipo']);
+
+    const pubIcon = esParticular
+      ? `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--ink-light)" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`
+      : `<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--ink-light)" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>`;
+
+    return `
+      <div class="prop-card">
+        ${agencyHeader}
+        <div class="card-photo">
+          <span class="op-badge ${opClass}">${opLabel}</span>
+          ${fotoHTML}
+        </div>
+        <div class="card-info">
+          <p class="card-price">${formatPrecio(f['Precio'], f['Moneda'])}${duracionSuffix}</p>
+          <p class="card-desc">${f['Titulo'] || '—'}</p>
+          <div class="card-feats">${feats.join('')}</div>
+        </div>
+        <div class="card-bottom">
+          <div class="pub-icon">${pubIcon}</div>
+          <span class="pub-label">${esParticular ? 'Particular' : 'Agencia inmobiliaria'}</span>
+        </div>
+      </div>`;
+  }
+
+  // ── RENDERIZAR GRILLA ──
+  function renderGrid() {
+    const grid = document.getElementById('prop-grid');
+    const start = 0;
+    const end = paginaActual * POR_PAGINA;
+    const slice = propiedadesFiltradas.slice(start, end);
+
+    if (slice.length === 0) {
+      grid.innerHTML = '<div class="empty-state">No se encontraron propiedades con esos filtros.</div>';
+      document.getElementById('load-more').style.display = 'none';
+      document.getElementById('results-count').textContent = '0 resultados';
+      return;
+    }
+
+    grid.innerHTML = slice.map(p => buildCard(p.prop, p.agenciaNombre, p.agenciaVerificada)).join('');
+    document.getElementById('results-count').textContent = `${propiedadesFiltradas.length} resultado${propiedadesFiltradas.length !== 1 ? 's' : ''}`;
+    document.getElementById('load-more').style.display = propiedadesFiltradas.length > end ? 'block' : 'none';
+  }
+
+  // ── CARGAR MÁS ──
+  function loadMore() {
+    paginaActual++;
+    renderGrid();
+  }
+
+  // ── APLICAR FILTROS ──
+  function applyFilters() {
+    const busqueda = (document.getElementById('search-input').value || '').toLowerCase();
+    const opFilter = activeFilters.op;
+    const tipoFilter = activeFilters.tipo;
+    const sort = document.getElementById('sort-select').value;
+
+    let resultado = todasLasPropiedades.filter(item => {
+      const f = item.prop.fields || {};
+      const matchOp = !opFilter || (f['Operación'] || '').toLowerCase().includes(opFilter.toLowerCase());
+      const matchTipo = !tipoFilter || (f['Tipo'] || '').toLowerCase().includes(tipoFilter.toLowerCase());
+      const matchBusqueda = !busqueda ||
+        (f['Titulo'] || '').toLowerCase().includes(busqueda) ||
+        (f['Zona/Barrio'] || '').toLowerCase().includes(busqueda) ||
+        (f['Descripción'] || '').toLowerCase().includes(busqueda);
+      return matchOp && matchTipo && matchBusqueda;
+    });
+
+    // Ordenar
+    resultado.sort((a, b) => {
+      const fa = a.prop.fields || {};
+      const fb = b.prop.fields || {};
+      if (sort === 'precio-asc') return (Number(fa['Precio']) || 0) - (Number(fb['Precio']) || 0);
+      if (sort === 'precio-desc') return (Number(fb['Precio']) || 0) - (Number(fa['Precio']) || 0);
+      if (sort === 'asc') return new Date(fa['Fecha carga']) - new Date(fb['Fecha carga']);
+      return new Date(fb['Fecha carga']) - new Date(fa['Fecha carga']);
+    });
+
+    propiedadesFiltradas = resultado;
+    paginaActual = 1;
+    renderGrid();
+  }
+
+  // ── CHIPS FILTRO ──
+  function setChip(el, group, value) {
     const parent = el.closest('.filter-group');
     parent.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
     el.classList.add('active');
+    activeFilters[group] = value;
+    applyFilters();
   }
+
+  function filterByOp(op) {
+    activeFilters.op = op;
+    const chips = document.querySelectorAll('#filter-op-chips .chip');
+    chips.forEach(c => {
+      c.classList.remove('active');
+      if (c.getAttribute('onclick').includes(`'${op}'`)) c.classList.add('active');
+    });
+    applyFilters();
+  }
+
+  // ── CARGAR AGENCIAS ──
+  async function cargarAgencias() {
+    try {
+      const url = `https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(TABLE_AGENCIAS)}`;
+      const res = await fetch(url, {
+        headers: { Authorization: `Bearer ${AIRTABLE_TOKEN}` }
+      });
+      const data = await res.json();
+      const agencias = data.records || [];
+
+      document.getElementById('stat-agencias').textContent = agencias.length;
+
+      const grid = document.getElementById('agencies-grid');
+      if (agencias.length === 0) {
+        grid.innerHTML = '<div class="empty-state" style="padding:20px 0;">Aún no hay agencias cargadas.</div>';
+        return;
+      }
+
+      grid.innerHTML = agencias.map(ag => {
+        const f = ag.fields || {};
+        const nombre = f['Nombre'] || f['nombre'] || f['Name'] || 'Agencia';
+        const initials = getInitials(nombre);
+        const colors = getAvatarColor(nombre);
+        const cantProps = f['Propiedades'] ? f['Propiedades'].length : 0;
+        return `
+          <div class="agency-chip">
+            <div class="agency-chip-avatar" style="background:${colors.bg};color:${colors.color};">${initials}</div>
+            <div class="agency-chip-info">
+              <div class="agency-chip-name">${nombre}</div>
+              <div class="agency-chip-count">${cantProps} props.</div>
+            </div>
+          </div>`;
+      }).join('');
+
+      return agencias;
+    } catch (e) {
+      console.error('Error cargando agencias:', e);
+      return [];
+    }
+  }
+
+  // ── CARGAR PROPIEDADES ──
+  async function cargarPropiedades(agencias) {
+    try {
+      // Mapa de agencias por ID para lookup
+      const agenciasMap = {};
+      (agencias || []).forEach(ag => {
+        agenciasMap[ag.id] = ag.fields || {};
+      });
+
+      let allRecords = [];
+      let offset = null;
+
+      do {
+        let url = `https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(TABLE_PROPIEDADES)}?pageSize=100`;
+        if (offset) url += `&offset=${offset}`;
+        const res = await fetch(url, {
+          headers: { Authorization: `Bearer ${AIRTABLE_TOKEN}` }
+        });
+        const data = await res.json();
+        allRecords = allRecords.concat(data.records || []);
+        offset = data.offset || null;
+      } while (offset);
+
+      // Calcular estadísticas
+      const hoy = new Date().toISOString().split('T')[0];
+      const nuevasHoy = allRecords.filter(r => {
+        const fc = (r.fields || {})['Fecha carga'] || '';
+        return fc.startsWith(hoy);
+      }).length;
+
+      document.getElementById('stat-total').textContent = allRecords.length;
+      document.getElementById('stat-nuevas').textContent = nuevasHoy;
+
+      // Armar array con nombre de agencia resuelto
+      todasLasPropiedades = allRecords.map(prop => {
+        const f = prop.fields || {};
+        const agenciaRef = f['Agencia'];
+        let agenciaNombre = '';
+        let agenciaVerificada = false;
+
+        if (agenciaRef && agenciaRef.length > 0) {
+          const agData = agenciasMap[agenciaRef[0]] || {};
+          agenciaNombre = agData['Nombre'] || agData['nombre'] || agData['Name'] || '';
+          agenciaVerificada = !!(agData['Verificada'] || agData['verificada']);
+        }
+
+        return { prop, agenciaNombre, agenciaVerificada };
+      });
+
+      propiedadesFiltradas = [...todasLasPropiedades];
+      applyFilters();
+
+    } catch (e) {
+      console.error('Error cargando propiedades:', e);
+      document.getElementById('prop-grid').innerHTML =
+        '<div class="empty-state">Error al cargar propiedades. Revisá la consola para más detalles.</div>';
+    }
+  }
+
+  // ── INIT ──
+  async function init() {
+    const agencias = await cargarAgencias();
+    await cargarPropiedades(agencias);
+  }
+
+  init();
 </script>
 
 </body>
