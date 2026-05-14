@@ -8,21 +8,42 @@ import os
 import re
 import time
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 from bs4 import BeautifulSoup
 from datetime import date
 
 # ── CONFIGURACIÓN ──────────────────────────────────────────────
-AIRTABLE_TOKEN   = os.environ.get("AIRTABLE_TOKEN")
-AIRTABLE_BASE_ID = os.environ.get("AIRTABLE_BASE_ID")
+AIRTABLE_TOKEN    = os.environ.get("AIRTABLE_TOKEN")
+AIRTABLE_BASE_ID  = os.environ.get("AIRTABLE_BASE_ID")
 TABLE_PROPIEDADES = "Propiedades"
 TABLE_AGENCIAS    = "Agencias"
 
-BASE_URL     = "https://angelinipropiedades.com"
-LISTADO_URL  = "https://angelinipropiedades.com/propiedades/page/{}/"
+BASE_URL       = "https://angelinipropiedades.com"
+LISTADO_URL    = "https://angelinipropiedades.com/propiedades/page/{}/"
 AGENCIA_NOMBRE = "Angelini Propiedades"
 
-HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; GchuPortal/1.0)"}
+HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+    "Accept-Language": "es-AR,es;q=0.9,en;q=0.8",
+    "Connection": "keep-alive",
+    "Upgrade-Insecure-Requests": "1",
+}
 # ───────────────────────────────────────────────────────────────
+
+
+def make_session():
+    session = requests.Session()
+    retry = Retry(total=3, backoff_factor=2, status_forcelist=[429, 500, 502, 503, 504])
+    adapter = HTTPAdapter(max_retries=retry)
+    session.mount("https://", adapter)
+    session.mount("http://", adapter)
+    session.headers.update(HEADERS)
+    return session
+
+
+SESSION = make_session()
 
 
 def airtable_get(table, params=None):
@@ -34,8 +55,11 @@ def airtable_get(table, params=None):
         p = dict(params or {})
         if offset:
             p["offset"] = offset
-        r = requests.get(url, headers=headers, params=p)
+        r = requests.get(url, headers=headers, params=p, timeout=20)
         data = r.json()
+        if "error" in data:
+            print(f"  Error Airtable GET: {data}")
+            break
         records += data.get("records", [])
         offset = data.get("offset")
         if not offset:
@@ -49,114 +73,119 @@ def airtable_post(table, fields):
         "Authorization": f"Bearer {AIRTABLE_TOKEN}",
         "Content-Type": "application/json",
     }
-    r = requests.post(url, headers=headers, json={"fields": fields})
-    return r.json()
+    r = requests.post(url, headers=headers, json={"fields": fields}, timeout=20)
+    result = r.json()
+    if "error" in result:
+        print(f"  Error Airtable POST: {result}")
+    return result
 
 
 def get_or_create_agencia(nombre):
-    """Devuelve el record ID de la agencia, creándola si no existe."""
     records = airtable_get(TABLE_AGENCIAS)
     for rec in records:
-        if rec["fields"].get("Nombre", "").lower() == nombre.lower():
+        if rec["fields"].get("Nombre", "").strip().lower() == nombre.strip().lower():
+            print(f"  Agencia encontrada: {rec['id']}")
             return rec["id"]
-    # Crear agencia
-    result = airtable_post(TABLE_AGENCIAS, {
-        "Nombre": nombre,
-        "Estado": "Verificada",
-        "Rol": "Agencia",
-    })
-    return result.get("id")
+    print(f"  Creando agencia '{nombre}'...")
+    result = airtable_post(TABLE_AGENCIAS, {"Nombre": nombre, "Estado": "Verificada"})
+    agencia_id = result.get("id")
+    print(f"  Agencia creada: {agencia_id}")
+    return agencia_id
 
 
 def get_existing_urls():
-    """Devuelve el conjunto de URLs ya cargadas en Airtable."""
     records = airtable_get(TABLE_PROPIEDADES, {"fields[]": "URL original"})
     return {rec["fields"].get("URL original", "") for rec in records}
 
 
 def parse_precio(texto):
-    """Extrae precio numérico y moneda de texto como 'En Venta U$D220.000'."""
     moneda = "USD" if "U$D" in texto or "USD" in texto else "ARS"
-    numeros = re.findall(r"[\d.,]+", texto.replace(".", "").replace(",", ""))
-    precio = int(numeros[-1]) if numeros else None
-    return precio, moneda
+    m = re.search(r"(?:U\$D|USD|\$)\s*([\d.,]+)", texto)
+    if m:
+        num_str = m.group(1).replace(".", "").replace(",", "")
+        try:
+            return int(num_str), moneda
+        except:
+            pass
+    return None, moneda
 
 
 def parse_operacion(texto):
-    t = texto.lower()
-    if "alquiler" in t:
-        return "Alquiler"
-    if "venta" in t:
-        return "Venta"
-    return "Venta"
+    return "Alquiler" if "alquiler" in texto.lower() else "Venta"
+
+
+def parse_tipo(texto):
+    for t in ["Departamento", "Dúplex", "Duplex", "Local", "Terreno", "Campo", "Chacra", "Galpón", "Oficina"]:
+        if t.lower() in texto.lower():
+            return t
+    return "Casa"
 
 
 def scrape_listado(page):
-    """Devuelve lista de {url, titulo, precio, moneda, operacion} de una página."""
     url = LISTADO_URL.format(page)
-    r = requests.get(url, headers=HEADERS, timeout=15)
-    if r.status_code != 200:
-        return None  # No hay más páginas
+    try:
+        r = SESSION.get(url, timeout=20)
+        if r.status_code == 404:
+            return None
+        if r.status_code != 200:
+            print(f"  Status {r.status_code} en página {page}")
+            return None
+    except Exception as e:
+        print(f"  Error página {page}: {e}")
+        return None
+
     soup = BeautifulSoup(r.text, "html.parser")
-
     propiedades = []
-    # Cada propiedad tiene un h4 con link y un span de precio
-    for item in soup.select("article, .property-item, .listing-item, h4 a"):
-        pass
-
-    # Estrategia: buscar todos los links a /propiedad/
     links_vistos = set()
+
     for a in soup.find_all("a", href=re.compile(r"/propiedad/")):
-        href = a["href"]
-        if href in links_vistos:
+        href = a.get("href", "")
+        if not href or href in links_vistos:
             continue
         links_vistos.add(href)
 
-        # Buscar contenedor padre para extraer precio
-        container = a.find_parent()
-        texto_completo = container.get_text(" ", strip=True) if container else ""
-
-        precio, moneda = parse_precio(texto_completo)
-        operacion = parse_operacion(texto_completo)
         titulo = a.get_text(strip=True)
+        if not titulo or len(titulo) < 3:
+            continue
 
-        if titulo and href:
-            propiedades.append({
-                "url": href if href.startswith("http") else BASE_URL + href,
-                "titulo": titulo,
-                "precio": precio,
-                "moneda": moneda,
-                "operacion": operacion,
-            })
+        container = a.find_parent()
+        texto_bloque = ""
+        for _ in range(4):
+            if container:
+                texto_bloque = container.get_text(" ", strip=True)
+                if "venta" in texto_bloque.lower() or "alquiler" in texto_bloque.lower():
+                    break
+                container = container.find_parent()
+
+        precio, moneda = parse_precio(texto_bloque)
+        operacion = parse_operacion(texto_bloque)
+        tipo = parse_tipo(texto_bloque + " " + titulo)
+        url_prop = href if href.startswith("http") else BASE_URL + href
+
+        propiedades.append({
+            "url": url_prop,
+            "titulo": titulo,
+            "precio": precio,
+            "moneda": moneda,
+            "operacion": operacion,
+            "tipo": tipo,
+        })
 
     return propiedades if propiedades else None
 
 
 def scrape_detalle(url):
-    """Extrae descripción, tipo, dormitorios, baños, superficie e imagen de una propiedad."""
     try:
-        r = requests.get(url, headers=HEADERS, timeout=15)
+        time.sleep(1)
+        r = SESSION.get(url, timeout=20)
         soup = BeautifulSoup(r.text, "html.parser")
 
-        # Descripción
-        desc_tag = soup.find("meta", {"name": "description"}) or soup.find("meta", {"property": "og:description"})
-        descripcion = desc_tag["content"] if desc_tag and desc_tag.get("content") else ""
+        desc_tag = soup.find("meta", {"property": "og:description"})
+        descripcion = desc_tag["content"].strip() if desc_tag and desc_tag.get("content") else ""
 
-        # Imagen principal (og:image)
-        img_tag = soup.find("meta", {"property": "og:image"})
+        img_tag = soup.find("meta", {"property": "og:image"}) or soup.find("meta", {"name": "twitter:image"})
         imagen_url = img_tag["content"] if img_tag and img_tag.get("content") else ""
 
-        # Tipo de propiedad (título H1 suele decir "Lestonnac 1249 En Venta Casas")
-        h1 = soup.find("h1")
-        tipo = "Casa"
-        if h1:
-            texto_h1 = h1.get_text()
-            for t in ["Departamento", "Local", "Terreno", "Campo", "Oficina", "Galpón", "Duplex", "Dúplex"]:
-                if t.lower() in texto_h1.lower():
-                    tipo = t
-                    break
-
-        # Features: dormitorios, baños, superficie
         dormitorios = baños = superficie = None
         for li in soup.select("li"):
             txt = li.get_text(strip=True)
@@ -166,65 +195,60 @@ def scrape_detalle(url):
             m = re.search(r"(\d+)\s*Ba[ñn]o", txt, re.I)
             if m:
                 baños = int(m.group(1))
-            m = re.search(r"S\.\s*Cubierta.*?([\d.,]+)", txt, re.I)
+            m = re.search(r"S\.\s*Cubierta[^\d]*([\d.,]+)", txt, re.I)
             if m:
                 try:
                     superficie = float(m.group(1).replace(",", "."))
                 except:
                     pass
 
-        return {
-            "descripcion": descripcion,
-            "imagen_url": imagen_url,
-            "tipo": tipo,
-            "dormitorios": dormitorios,
-            "baños": baños,
-            "superficie": superficie,
-        }
+        return {"descripcion": descripcion, "imagen_url": imagen_url,
+                "dormitorios": dormitorios, "baños": baños, "superficie": superficie}
     except Exception as e:
         print(f"  Error detalle {url}: {e}")
         return {}
 
 
 def main():
-    print("=== Scraper Angelini Propiedades → Airtable ===")
+    print("=== Scraper Angelini Propiedades → Airtable ===\n")
 
-    # 1. Obtener ID de agencia
-    print("Obteniendo agencia...")
+    if not AIRTABLE_TOKEN or not AIRTABLE_BASE_ID:
+        print("ERROR: Faltan variables AIRTABLE_TOKEN o AIRTABLE_BASE_ID")
+        exit(1)
+
+    print("1. Obteniendo agencia...")
     agencia_id = get_or_create_agencia(AGENCIA_NOMBRE)
-    print(f"  Agencia ID: {agencia_id}")
+    if not agencia_id:
+        print("ERROR: No se pudo obtener la agencia.")
+        exit(1)
 
-    # 2. Obtener URLs ya existentes
-    print("Obteniendo propiedades existentes en Airtable...")
+    print("\n2. Obteniendo propiedades existentes...")
     existing_urls = get_existing_urls()
-    print(f"  {len(existing_urls)} propiedades ya cargadas.")
+    print(f"   {len(existing_urls)} ya cargadas.")
 
-    # 3. Scrapear páginas
+    print("\n3. Scraping...\n")
     nuevas = 0
     page = 1
+
     while True:
-        print(f"Scrapeando página {page}...")
+        print(f"Página {page}...")
         propiedades = scrape_listado(page)
 
         if not propiedades:
-            print(f"  Fin del listado en página {page}.")
+            print(f"Fin en página {page}.")
             break
 
         for prop in propiedades:
             if prop["url"] in existing_urls:
-                continue  # Ya existe, saltar
+                continue
 
-            print(f"  Nueva: {prop['titulo']} — {prop['url']}")
-
-            # Detalle
-            time.sleep(0.5)  # Ser respetuoso con el servidor
+            print(f"  + {prop['titulo']} ({prop['operacion']}) {prop['precio']} {prop['moneda']}")
             detalle = scrape_detalle(prop["url"])
 
-            # Armar campos para Airtable
             fields = {
                 "Titulo": prop["titulo"],
                 "Operación": prop["operacion"],
-                "Tipo": detalle.get("tipo", "Casa"),
+                "Tipo": prop["tipo"],
                 "Precio": prop["precio"],
                 "Moneda": prop["moneda"],
                 "Descripción": detalle.get("descripcion", ""),
@@ -242,18 +266,15 @@ def main():
                 fields["Superficie m²"] = detalle["superficie"]
 
             result = airtable_post(TABLE_PROPIEDADES, fields)
-            if "id" in result:
+            if result.get("id"):
                 nuevas += 1
                 existing_urls.add(prop["url"])
-            else:
-                print(f"    Error al cargar: {result}")
-
-            time.sleep(0.3)
+            time.sleep(0.5)
 
         page += 1
-        time.sleep(1)  # Pausa entre páginas
+        time.sleep(2)
 
-    print(f"\n✅ Listo. {nuevas} propiedades nuevas cargadas en Airtable.")
+    print(f"\n✅ {nuevas} propiedades nuevas cargadas.")
 
 
 if __name__ == "__main__":
