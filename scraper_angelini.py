@@ -1,8 +1,7 @@
 """
 Scraper: Angelini Propiedades → Airtable
-- Extrae título real desde página de detalle
-- Guarda URL de foto en campo de texto
-- Evita duplicados por URL original
+Extrae datos directamente del listado (título, precio, operación, dormitorios, baños, superficie)
+y la imagen desde og:image de la página de detalle.
 """
 
 import os
@@ -80,27 +79,14 @@ def get_existing_urls():
     records = airtable_get(TABLE_PROPIEDADES, {"fields[]": "URL original"})
     return {rec["fields"].get("URL original", "") for rec in records if "URL original" in rec["fields"]}
 
-def parse_precio(texto):
-    moneda = "USD" if "U$D" in texto or "USD" in texto else "ARS"
-    m = re.search(r"(?:U\$D|USD|\$)\s*([\d.]+)", texto)
-    if m:
-        try:
-            return int(m.group(1).replace(".", "")), moneda
-        except:
-            pass
-    return None, moneda
-
-def parse_operacion(texto):
-    return "Alquiler" if "alquiler" in texto.lower() else "Venta"
-
 def parse_tipo(texto):
     texto_lower = texto.lower()
     tipos = [
-        ("Departamento", ["departamento", "dpto"]),
+        ("Departamento", ["departamento", "dpto", "depto"]),
         ("Chacra", ["chacra"]),
-        ("Campo", ["campo", "arrendamiento", "rural"]),
-        ("Terreno", ["terreno", "lote", "loteo"]),
-        ("Local", ["local comercial", "local"]),
+        ("Campo", ["campo", "rural", "estancia", "casco"]),
+        ("Terreno", ["terreno", "lote ", "loteo", "s. lote"]),
+        ("Local", ["local comercial", "local "]),
         ("Oficina", ["oficina"]),
         ("Galpón", ["galpón", "galpon"]),
         ("Dúplex", ["dúplex", "duplex"]),
@@ -110,8 +96,24 @@ def parse_tipo(texto):
             return tipo
     return "Casa"
 
-def scrape_listado(page):
-    """Devuelve lista de URLs de propiedades en una página."""
+def get_imagen_url(url_detalle):
+    """Obtiene la URL de la imagen principal desde og:image."""
+    try:
+        time.sleep(0.8)
+        r = SESSION.get(url_detalle, timeout=15)
+        soup = BeautifulSoup(r.text, "html.parser")
+        img_tag = soup.find("meta", {"property": "og:image"})
+        if img_tag and img_tag.get("content"):
+            return img_tag["content"]
+    except:
+        pass
+    return ""
+
+def scrape_pagina(page):
+    """
+    Extrae propiedades completas desde el listado.
+    El sitio muestra en el listado: dirección, precio, operación, dormitorios, baños, superficie.
+    """
     url = LISTADO_URL.format(page)
     try:
         r = SESSION.get(url, timeout=20)
@@ -122,97 +124,149 @@ def scrape_listado(page):
         return None
 
     soup = BeautifulSoup(r.text, "html.parser")
-    urls = []
-    vistos = set()
+    propiedades = []
 
-    for a in soup.find_all("a", href=re.compile(r"/propiedad/")):
-        href = a.get("href", "")
-        if not href or href in vistos:
+    # Cada propiedad está en un article o div con link a /propiedad/
+    # Buscamos los contenedores de cada propiedad
+    # El patrón del sitio: article o div que contiene un link /propiedad/ y datos
+    
+    contenedores = []
+    
+    # Intentar encontrar articles primero
+    for article in soup.find_all("article"):
+        link = article.find("a", href=re.compile(r"/propiedad/"))
+        if link:
+            contenedores.append((article, link))
+    
+    # Si no hay articles, buscar por divs con clase property
+    if not contenedores:
+        for div in soup.find_all("div", class_=re.compile(r"property|listing|prop")):
+            link = div.find("a", href=re.compile(r"/propiedad/"))
+            if link:
+                contenedores.append((div, link))
+
+    # Si tampoco, agrupar por links únicos a /propiedad/
+    if not contenedores:
+        vistos = set()
+        for a in soup.find_all("a", href=re.compile(r"/propiedad/")):
+            href = a.get("href", "")
+            if href in vistos:
+                continue
+            vistos.add(href)
+            # Subir en el DOM para encontrar el contenedor
+            container = a
+            for _ in range(5):
+                parent = container.find_parent()
+                if parent and len(parent.find_all("a", href=re.compile(r"/propiedad/"))) == 1:
+                    container = parent
+                else:
+                    break
+            contenedores.append((container, a))
+
+    urls_vistos = set()
+    for contenedor, link_tag in contenedores:
+        href = link_tag.get("href", "")
+        if not href or href in urls_vistos:
             continue
-        vistos.add(href)
+        urls_vistos.add(href)
+
         url_prop = href if href.startswith("http") else BASE_URL + href
-        urls.append(url_prop)
+        texto = contenedor.get_text(" ", strip=True)
 
-    return urls if urls else None
+        # Operación
+        if "en alquiler" in texto.lower() or "alquiler" in texto.lower():
+            operacion = "Alquiler"
+        else:
+            operacion = "Venta"
 
-def scrape_detalle(url):
-    """Extrae todos los datos desde la página de detalle de la propiedad."""
-    try:
-        time.sleep(1)
-        r = SESSION.get(url, timeout=20)
-        soup = BeautifulSoup(r.text, "html.parser")
+        # Precio
+        precio = None
+        moneda = "USD"
+        m = re.search(r"U\$D\s*([\d.,]+)", texto)
+        if m:
+            try:
+                precio = int(m.group(1).replace(".", "").replace(",", ""))
+                moneda = "USD"
+            except:
+                pass
+        else:
+            m = re.search(r"\$\s*([\d.,]+)", texto)
+            if m:
+                try:
+                    precio = int(m.group(1).replace(".", "").replace(",", ""))
+                    moneda = "ARS"
+                except:
+                    pass
 
-        # Título desde H1 o og:title
+        # Título: buscar la dirección (texto que no es precio ni operación)
         titulo = ""
-        h1 = soup.find("h1")
-        if h1:
-            titulo = h1.get_text(strip=True)
+        # Buscar en el link o en un h2/h3 dentro del contenedor
+        for tag in contenedor.find_all(["h2", "h3", "h4", "h5"]):
+            t = tag.get_text(strip=True)
+            if t and len(t) > 4 and not re.match(r"^(en\s)?(venta|alquiler)", t, re.I):
+                titulo = t
+                break
+        
         if not titulo:
-            og_title = soup.find("meta", {"property": "og:title"})
-            if og_title:
-                titulo = og_title.get("content", "").strip()
+            # Intentar desde el link
+            t = link_tag.get_text(strip=True)
+            if t and len(t) > 4 and not re.match(r"^(en\s)?(venta|alquiler)|U\$D|\$", t, re.I):
+                titulo = t
 
-        # Limpiar título (sacar "En Venta" y precio si están pegados)
-        titulo = re.sub(r"En\s*(Venta|Alquiler)\s*", "", titulo, flags=re.I).strip()
-        titulo = re.sub(r"U\$D[\d.,]+", "", titulo).strip()
-        titulo = re.sub(r"\$[\d.,]+", "", titulo).strip()
         if not titulo:
-            titulo = url.split("/")[-2].replace("-", " ").title()
+            # Extraer dirección del texto: buscar patrón "Calle Número"
+            m_dir = re.search(r"([A-ZÁÉÍÓÚÑ][a-záéíóúñ\s]+\s+\d+[^,\n]*)", texto)
+            if m_dir:
+                titulo = m_dir.group(1).strip()
 
-        # Descripción
-        desc_tag = soup.find("meta", {"property": "og:description"})
-        descripcion = desc_tag["content"].strip() if desc_tag and desc_tag.get("content") else ""
+        if not titulo:
+            titulo = url_prop.split("/")[-2].replace("-", " ").title()
 
-        # Imagen principal
-        img_tag = soup.find("meta", {"property": "og:image"})
-        imagen_url = img_tag["content"] if img_tag and img_tag.get("content") else ""
+        # Tipo
+        tipo = parse_tipo(texto + " " + titulo)
 
-        # Precio y operación desde el texto completo
-        texto_completo = soup.get_text(" ", strip=True)
-        precio, moneda = parse_precio(texto_completo)
-        operacion = parse_operacion(texto_completo)
-        tipo = parse_tipo(texto_completo + " " + titulo)
+        # Dormitorios
+        dormitorios = None
+        m = re.search(r"(\d+)\s*[Dd]ormitorio", texto)
+        if m:
+            dormitorios = int(m.group(1))
 
-        # Dormitorios, baños, superficie desde lista de features
-        dormitorios = baños = superficie = None
-        for li in soup.select("li, .property-feature, .feature"):
-            txt = li.get_text(strip=True)
-            m = re.search(r"(\d+)\s*[Dd]ormitorio", txt)
-            if m:
-                dormitorios = int(m.group(1))
-            m = re.search(r"(\d+)\s*[Bb]a[ñn]o", txt)
-            if m:
-                baños = int(m.group(1))
-            m = re.search(r"([\d.,]+)\s*m[²2]", txt)
+        # Baños
+        banos = None
+        m = re.search(r"(\d+)\s*[Bb]a[ñn]o", texto)
+        if m:
+            banos = int(m.group(1))
+
+        # Superficie cubierta
+        superficie = None
+        m = re.search(r"[Cc]ubierta[^\d]*([\d.,]+)", texto)
+        if m:
+            try:
+                superficie = float(m.group(1).replace(",", "."))
+            except:
+                pass
+        if not superficie:
+            m = re.search(r"([\d.,]+)\s*m[²2]", texto)
             if m:
                 try:
                     superficie = float(m.group(1).replace(",", "."))
                 except:
                     pass
 
-        # Zona desde URL o título
-        zona = ""
-        url_parts = url.rstrip("/").split("/")
-        if len(url_parts) >= 2:
-            zona_raw = url_parts[-2] if url_parts[-2] != "propiedad" else ""
-            zona = zona_raw.replace("-", " ").replace(",", ", ").title()
-
-        return {
+        propiedades.append({
+            "url": url_prop,
             "titulo": titulo,
-            "descripcion": descripcion,
-            "imagen_url": imagen_url,
             "precio": precio,
             "moneda": moneda,
             "operacion": operacion,
             "tipo": tipo,
             "dormitorios": dormitorios,
-            "baños": baños,
+            "baños": banos,
             "superficie": superficie,
-            "zona": zona,
-        }
-    except Exception as e:
-        print(f"  Error detalle {url}: {e}")
-        return {}
+        })
+
+    return propiedades if propiedades else None
+
 
 def main():
     print("=== Scraper Angelini Propiedades → Airtable ===\n")
@@ -238,58 +292,54 @@ def main():
 
     while True:
         print(f"Página {page}...")
-        urls = scrape_listado(page)
+        propiedades = scrape_pagina(page)
 
-        if not urls:
+        if not propiedades:
             print(f"Fin en página {page}.")
             break
 
-        for url_prop in urls:
-            if url_prop in existing_urls:
+        for prop in propiedades:
+            if prop["url"] in existing_urls:
                 continue
 
-            detalle = scrape_detalle(url_prop)
-            if not detalle:
-                continue
+            print(f"  + {prop['titulo']} | {prop['operacion']} | {prop['precio']} {prop['moneda']} | {prop['dormitorios']}d {prop['baños']}b {prop['superficie']}m²")
 
-            titulo = detalle.get("titulo") or url_prop.split("/")[-2]
-            print(f"  + {titulo} | {detalle.get('operacion')} | {detalle.get('precio')} {detalle.get('moneda')}")
+            # Obtener imagen desde detalle
+            imagen_url = get_imagen_url(prop["url"])
 
             fields = {
-                "Titulo": titulo,
-                "Operación": detalle.get("operacion", "Venta"),
-                "Tipo": detalle.get("tipo", "Casa"),
-                "Moneda": detalle.get("moneda", "USD"),
-                "Descripción": detalle.get("descripcion", ""),
-                "URL original": url_prop,
+                "Titulo": prop["titulo"],
+                "Operación": prop["operacion"],
+                "Tipo": prop["tipo"],
+                "Moneda": prop["moneda"],
+                "URL original": prop["url"],
                 "Tipo Publicante": "Agencia",
                 "Estado": "Publicada",
                 "Fecha carga": str(date.today()),
                 "Agencia": [agencia_id],
             }
-            if detalle.get("precio") is not None:
-                fields["Precio"] = detalle["precio"]
-            if detalle.get("dormitorios"):
-                fields["Dormitorios"] = detalle["dormitorios"]
-            if detalle.get("baños"):
-                fields["Baños"] = detalle["baños"]
-            if detalle.get("superficie"):
-                fields["Superficie m²"] = detalle["superficie"]
-            if detalle.get("zona"):
-                fields["Zona/Barrio"] = detalle["zona"]
-            if detalle.get("imagen_url"):
-                fields["Imagen URL"] = detalle["imagen_url"]
+            if prop["precio"] is not None:
+                fields["Precio"] = prop["precio"]
+            if prop["dormitorios"]:
+                fields["Dormitorios"] = prop["dormitorios"]
+            if prop["baños"]:
+                fields["Baños"] = prop["baños"]
+            if prop["superficie"]:
+                fields["Superficie m²"] = prop["superficie"]
+            if imagen_url:
+                fields["Imagen URL"] = imagen_url
 
             result = airtable_post(TABLE_PROPIEDADES, fields)
             if result.get("id"):
                 nuevas += 1
-                existing_urls.add(url_prop)
+                existing_urls.add(prop["url"])
             time.sleep(0.5)
 
         page += 1
         time.sleep(2)
 
     print(f"\n✅ {nuevas} propiedades nuevas cargadas.")
+
 
 if __name__ == "__main__":
     main()
