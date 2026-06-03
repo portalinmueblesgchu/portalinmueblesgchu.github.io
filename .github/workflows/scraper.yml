@@ -1,9 +1,9 @@
-name: Scraper Angelini Propiedades
+name: Scraper Universal
 
 on:
   schedule:
     - cron: '0 10 * * *'   # Todos los días a las 10:00 UTC (07:00 Argentina)
-  workflow_dispatch:         # También permite ejecutarlo manualmente
+  workflow_dispatch:         # Permite ejecutarlo manualmente desde GitHub
 
 jobs:
   scraper:
@@ -11,18 +11,19 @@ jobs:
 
     steps:
       - name: Checkout repositorio
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Instalar Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
       - name: Instalar dependencias
         run: pip install requests beautifulsoup4
 
-      - name: Ejecutar scraper
+      - name: Ejecutar scraper universal
         env:
           AIRTABLE_TOKEN: ${{ secrets.AIRTABLE_TOKEN }}
           AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
-        run: python scraper_angelini.py
+        run: python scraper_universal.py
+
